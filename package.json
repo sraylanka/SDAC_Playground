@@ -1,0 +1,11 @@
+{
+  "name": "flight-controls-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "start": "python -m http.server 4173 --directory public",
+    "build": "node build.mjs"
+  }
+}
