@@ -11,11 +11,13 @@ export function initNavigation(onChange) {
     const topic=resolveTopic(window.location.hash,saved),index=topics.indexOf(topic),changed=topic.id!==currentId;
     currentId=topic.id;saved=topic.id;
     if(window.location.hash!==`#${topic.id}`)history.replaceState(null,'',`#${topic.id}`);
-    document.body.dataset.playground=topic.id;
+    document.body.dataset.playground=topic.id;document.body.dataset.workspace=topic.workspace;
     links.forEach(link=>{const active=link.dataset.topic===topic.id;if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
     $('topic-breadcrumb').textContent=`${topic.group.toUpperCase()} / PLAYGROUND ${String(index+1).padStart(2,'0')}`;
     const heading=$('playground-heading');heading.replaceChildren(document.createTextNode(topic.lead+' '));const em=document.createElement('em');em.textContent=topic.accent;heading.append(em);
     $('topic-description').textContent=topic.description;$('topic-model').textContent=topic.model;document.title=`${topic.title} • Flight Controls`;
+    $('chapter').hidden=topic.workspace!=='chapter';
+    $('digital').hidden=topic.workspace!=='digital';
     $('design').hidden=topic.workspace!=='design';$('transfer').hidden=topic.workspace!=='transfer';
     $('design-section-label').textContent=topic.title.toUpperCase()+' LAB';$('transfer-section-label').textContent=topic.title.toUpperCase()+' LAB';
     $('transfer-heading').textContent=topic.id==='system-type'?'Find the integrators. Check the tracking.':'Explore your open loop.';

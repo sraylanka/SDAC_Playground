@@ -11,6 +11,7 @@ export function reduceOrigin(n,d) { const nc=originCount(n),dc=originCount(d),ca
 function evalComplex(a,z) { let v=[a[0],0];for(let i=1;i<a.length;i++)v=add(mul(v,z),[a[i],0]);return v; }
 export function roots(input) {
  const a=trim(input),n=a.length-1;if(n===0)return [];
+ const zeros=originCount(a);if(zeros)return [...roots(a.slice(0,-zeros)),...Array.from({length:zeros},()=>[0,0])];
  if(n===1)return [[-a[1]/a[0],0]];
  if(n===2){const b=a[1]/a[0],c=a[2]/a[0],disc=b*b-4*c;if(disc<0)return [[-b/2,Math.sqrt(-disc)/2],[-b/2,-Math.sqrt(-disc)/2]];const q=-0.5*(b+(b>=0?1:-1)*Math.sqrt(disc));return q===0?[[0,0],[0,0]]:[[q,0],[c/q,0]];}
  const rate=Math.max(1e-12,...a.slice(1).map((v,i)=>Math.abs(v/a[0])**(1/(i+1)))),p=a.map((v,i)=>v/a[0]/rate**i),dp=p.slice(0,-1).map((v,i)=>v*(n-i));
@@ -45,7 +46,7 @@ export function analyze(n,d,k=1,wmin=1e-4,wmax=1e4,band=0.02,targetTs=1) {
  const poles=roots(den),zeros=roots(num),cp=roots(closedDen),tol=1e-7*Math.max(1,...cp.map(abs)),stable=cp.every(p=>p[0]<-tol),uncertain=!stable && !cp.some(p=>p[0]>tol),data=bode(num,den,wmin,wmax),pm=margins(num,den,data);
  const minDecay=stable?Math.min(...cp.map(p=>-p[0])):0,horizon=stable&&cp.length?Math.max(targetTs*3,12/minDecay):targetTs*5;
  const response=stepResponse(num,closedDen,cp,horizon),finalValue=stable?num.at(-1)/closedDen.at(-1):null,m=stable?metrics(response,finalValue,band):{os:null,ts:null};
- const low=red.n.at(-1)*k/red.d.at(-1),constant=j=>red.net===j?low:red.net>j?Infinity:0;
+ const low=red.n[red.n.length-1-originCount(red.n)]*k/red.d[red.d.length-1-originCount(red.d)],constant=j=>red.net===j?low:red.net>j?Infinity:0;
  return {...red,num,den,closedDen,poles,zeros,cp,stable,uncertain,data,pm,response,finalValue,metrics:m,horizon,constants:{kp:constant(0),kv:constant(1),ka:constant(2)}};
 }
 export function canonicalStep(z,wn,t){if(z<1){const q=Math.sqrt(1-z*z);return 1-Math.exp(-z*wn*t)*(Math.cos(wn*q*t)+z/q*Math.sin(wn*q*t));}if(Math.abs(z-1)<1e-8)return 1-Math.exp(-wn*t)*(1+wn*t);const q=Math.sqrt(z*z-1),a=-wn*(z-q),b=-wn*(z+q);return 1+(b*Math.exp(a*t)-a*Math.exp(b*t))/(a-b);}

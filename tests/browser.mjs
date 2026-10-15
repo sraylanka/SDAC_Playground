@@ -36,4 +36,25 @@ await page.locator('[data-topic="settling-poles"]').click();assert.equal(await p
 assert.match(await page.locator('#design-chart-title').textContent(),/poles/);
 await page.screenshot({path:'/tmp/controls-mobile.png',fullPage:true});
 const overflow=await page.evaluate(()=>({width:innerWidth,doc:document.documentElement.scrollWidth}));assert.ok(overflow.doc<=overflow.width,JSON.stringify(overflow));
+await page.locator('#menu-toggle').click();await page.locator('[data-topic="digital-control"]').click();
+assert.ok(await page.locator('#digital').isVisible());assert.equal(await page.locator('#transfer').isVisible(),false);
+await page.locator('#digital-preset').selectOption('clean');assert.match(await page.locator('#digital-metrics').textContent(),/10 Hz/);
+await page.locator('[data-digital-view="dac"]').click();assert.ok(await page.locator('#digital-chart svg').isVisible());
+await page.locator('#digital-preset').selectOption('alias');await page.locator('[data-digital-view="sampling"]').click();assert.match(await page.locator('#digital-insight').textContent(),/0.6667 Hz alias/);
+await page.locator('#digital-period').fill('');assert.ok(await page.locator('#digital-error').isVisible());assert.equal(await page.locator('#digital-chart svg').count(),0);
+await page.locator('#digital-period').fill('0.05');await page.locator('#digital-bits').selectOption('12');assert.equal((await page.locator('#digital-word').textContent()).length,12);
+await page.reload();assert.equal(await page.locator('#digital-period').inputValue(),'0.05');assert.equal(await page.locator('#digital-bits').inputValue(),'12');
+assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+await page.screenshot({path:'/tmp/controls-digital-mobile.png',fullPage:true});
+await page.setViewportSize({width:1440,height:1050});
+for(const id of ['lead-design','lag-design','combined-design','rate-feedback','compensator-circuits','sinusoidal-response','bode-builder','nyquist-stability','bandwidth-resonance','bode-tracking','time-delay','nichols-chart','system-identification']){
+ await page.locator(`[data-topic="${id}"]`).click();assert.ok(await page.locator('#chapter').isVisible());assert.equal(await page.locator('#chapter [data-error]').isVisible(),false);assert.ok(await page.locator('#chapter svg').count()>0);assert.equal(await page.locator('#digital').isVisible(),false);
+}
+await page.locator('[data-action="sweep"]').click();assert.equal(await page.locator('#chapter tbody tr').count(),13);
+await page.locator('[data-action="reveal"]').click();assert.match(await page.locator('#chapter [data-insight]').textContent(),/Revealed model/);
+await page.reload();assert.equal(await page.locator('#chapter tbody tr').count(),13);
+await page.locator('[data-topic="lead-design"]').click();await page.locator('[data-action="reset"]').click();await page.locator('[data-action="solve"]').click();assert.match(await page.locator('#chapter [data-insight]').textContent(),/satisfies the angle condition/);
+await page.locator('#lead-design-gain').fill('');await page.locator('#lead-design-gain').blur();assert.ok(await page.locator('#chapter [data-error]').isVisible());assert.equal(await page.locator('#chapter svg').count(),0);await page.locator('[data-action="reset"]').click();
+await page.setViewportSize({width:390,height:844});await page.locator('#menu-toggle').click();await page.locator('[data-topic="nyquist-stability"]').click();assert.ok(await page.locator('#topic-sidebar').isHidden());assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+await page.screenshot({path:'/tmp/controls-chapters-mobile.png',fullPage:true});
 assert.deepEqual(errors,[]);console.log('Browser interactions: passed; no JS errors; desktop and 390px mobile screenshots saved.');await browser.close();
